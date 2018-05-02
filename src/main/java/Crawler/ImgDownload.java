@@ -15,39 +15,54 @@ import java.util.regex.Pattern;
 public class ImgDownload {
 
     public static void main(String... args) throws Exception {
+        //指定搜索关键字
         String search = "美女";
+        //指定搜索开始数据数
+        int first = 1;
+
         String search_url = java.net.URLEncoder.encode(search);
-        //创建字符缓冲流
-        StringBuffer sb = new StringBuffer();
-        //添加js加载后的网页
-        sb.append( new ImgDownload().getHtml("https://cn.bing.com/images/search?q="+search_url+"&FORM=HDRSC2") );
-        System.out.println(sb.toString()+"codeLength:"+sb.length());
 
-        //根据源码获取imgurl
-        List<String> imgurl = new ImgDownload().getImageUrl(sb.toString());
+        //创建保存imgsrc的集合
+        List<String> imgsrcList = new ArrayList<>();
 
-        //遍历imgurl
-        for(String img : imgurl){
-            System.out.println(img);
-        }
+        for(int j = 0; j <= 3; j ++) {
+            //创建字符缓冲流
+            StringBuffer sb = new StringBuffer();
+            //添加js加载后的网页
+            sb.append(new ImgDownload().getHtml("https://cn.bing" +
+                    ".com/images/search?q=" + search_url + "&FORM=HDRSC2&first=" + first));
+            System.out.println(sb.toString() + "codeLength:" + sb.length());
 
-        String realimgurl = imgurl.get(3);
+            //根据源码获取imgurl
+            List<String> imgurl = new ImgDownload().getImageUrl(sb.toString());
 
-        List<String> imgsrc = new ImgDownload().getImageSrc(realimgurl);
-        int allimg = 0;
-        for(int i = 0 ; i < imgsrc.size(); i ++){
-            if(imgsrc.get(i).indexOf("id") < 40) {
-                allimg ++;
-                System.out.println(imgsrc.get(i).substring(0, imgsrc.get(i).indexOf(";")));
-                System.out.println(imgsrc.get(i).indexOf("id"));
-            }else{
-                System.out.println("false");
+            //遍历imgurl
+            for (String img : imgurl) {
+                System.out.println(img);
             }
+
+            String realimgurl = imgurl.get(3);
+
+            List<String> imgsrc = new ImgDownload().getImageSrc(realimgurl);
+            int allimg = 0;
+            for (int i = 0; i < imgsrc.size(); i++) {
+                if (imgsrc.get(i).indexOf("id=") < 40) {
+                    allimg++;
+                    System.out.println(imgsrc.get(i).substring(0, imgsrc.get(i).indexOf(";")));
+                    System.out.println(imgsrc.get(i).indexOf("id"));
+                    imgsrcList.add(imgsrc.get(i).substring(0, imgsrc.get(i).indexOf(";")));
+                } else {
+                    System.out.println("false");
+                }
+            }
+            System.out.println("allimg:  " + allimg);
+            first += allimg-1;
+            //new ImgDownload().Download(imgsrc,search);
         }
-        System.out.println("allimg:  " + allimg);
-
-        //new ImgDownload().Download(imgsrc,search);
-
+        System.out.println("imgsrclist length : "+ imgsrcList.size());
+        for(String src : imgsrcList){
+            System.out.println(src);
+        }
     }
     /*
      * 获取img标签正则
@@ -152,10 +167,9 @@ public class ImgDownload {
             int i = 1;
             for (String url : listImgSrc) {
 
-                if (url.indexOf("id=") < 40) {
                     //开始时间
                     Date begindate2 = new Date();
-                    URL uri = new URL(url.substring(0, url.indexOf(";")));
+                    URL uri = new URL(url);
                     InputStream in = uri.openStream();
                     FileOutputStream fo = new FileOutputStream(new File
                             ("C:\\Users\\Administrator\\Desktop\\img\\" + i + ".png"));
@@ -177,7 +191,6 @@ public class ImgDownload {
                 double time = overdate.getTime() - begindate.getTime();
                 System.out.println("总耗时：" + time / 1000 + "s");
                 i++;
-            }
         } catch (FileNotFoundException e) {
             System.out.println("文件找不到");
         } catch (IOException e) {
